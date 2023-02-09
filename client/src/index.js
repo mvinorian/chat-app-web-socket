@@ -4,7 +4,8 @@ import "./index.css";
 import App from "./App";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-const socket = new WebSocket("ws://localhost:8080/");
+const WS_URL = "ws://localhost:8080/";
+const socket = new WebSocket(WS_URL);
 
 root.render(
   <React.StrictMode>
