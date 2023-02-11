@@ -4,6 +4,7 @@ export default function App({ socket }) {
   const [state, setState] = useState("login");
   const [chats, setChats] = useState([]);
   const [user, setUser] = useState("");
+  const [editing, setEditing] = useState(0);
 
   useEffect(() => {
     if (socket)
@@ -17,6 +18,18 @@ export default function App({ socket }) {
     const data = JSON.stringify({
       method: "post",
       data: {
+        sender: user,
+        message: message,
+      },
+    });
+    socket.send(data);
+  };
+
+  const updateChat = (chatId, message) => {
+    const data = JSON.stringify({
+      method: "update",
+      data: {
+        id: chatId,
         sender: user,
         message: message,
       },
@@ -80,20 +93,75 @@ export default function App({ socket }) {
             {chats.map((chat) => (
               <li
                 key={chat.id}
-                className="flex flex-col px-4 py-2 border-t border-slate-200"
+                className="flex flex-col py-2 border-t border-slate-200"
               >
-                <div className="w-full flex flex-row justify-between">
-                  <h6 className="text-sm">{chat.sender}</h6>
-                  <button
-                    onClick={() => deleteChat(chat.id)}
-                    className={`${
-                      user !== chat.sender && "hidden"
-                    } text-xs text-slate-500 hover:text-slate-800`}
+                {editing === chat.id ? (
+                  <form
+                    onSubmit={(event) => {
+                      const message = event.target.message.value;
+                      message && updateChat(chat.id, message);
+                      event.preventDefault();
+                      setEditing(() => 0);
+                    }}
+                    className="w-full flex flex-col px-2"
                   >
-                    Delete
-                  </button>
-                </div>
-                <p>{chat.message}</p>
+                    <div className="w-full flex flex-row justify-between px-2">
+                      <h6 className="text-sm">{chat.sender}</h6>
+                      <div className="w-full flex flex-row justify-end gap-x-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditing(() => 0);
+                          }}
+                          className={`${
+                            user !== chat.sender && "hidden"
+                          } text-xs text-slate-500 hover:text-slate-800`}
+                        >
+                          Escape
+                        </button>
+                        <button
+                          type="submit"
+                          className={`${
+                            user !== chat.sender && "hidden"
+                          } text-xs text-slate-500 hover:text-slate-800`}
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      name="message"
+                      placeholder={chat.message}
+                      className="flex-1 rounded-md mt-1 px-2 py-1 text-sm bg-slate-200"
+                    />
+                  </form>
+                ) : (
+                  <div className="w-full flex flex-col px-4">
+                    <div className="w-full flex flex-row justify-between">
+                      <h6 className="text-sm">{chat.sender}</h6>
+                      <div className="w-full flex flex-row justify-end gap-x-2">
+                        <button
+                          onClick={() => setEditing(() => chat.id)}
+                          className={`${
+                            user !== chat.sender && "hidden"
+                          } text-xs text-slate-500 hover:text-slate-800`}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteChat(chat.id)}
+                          className={`${
+                            user !== chat.sender && "hidden"
+                          } text-xs text-slate-500 hover:text-slate-800`}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                    <p>{chat.message}</p>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

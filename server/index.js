@@ -25,6 +25,15 @@ const postChat = (chat) => {
   chats.push({ id: (++chatId).toString(), ...chat });
 };
 
+const updateChat = (updatedChat) => {
+  chats.forEach((chat) => {
+    if (chat.id === updatedChat.id) {
+      chat.sender = updatedChat.sender;
+      chat.message = updatedChat.message;
+    }
+  });
+};
+
 const deleteChat = (chatId) => {
   chats = chats.filter((chat) => chat.id !== chatId);
 };
@@ -38,6 +47,7 @@ const broadcastChats = () => {
 
 const handleMessage = (data) => {
   data.method === "post" && postChat(data.data);
+  data.method === "update" && updateChat(data.data);
   data.method === "delete" && deleteChat(data.data.id);
   broadcastChats();
 };
